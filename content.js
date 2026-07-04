@@ -268,7 +268,14 @@ function applyPalette(imgElement) {
 
 // Zkontroluje jeden obrázek, jestli je to screenshot a aplikuje filtry
 function checkAndProcessImage(img) {
-    const isScreenshot = img.src.includes('assets.repebble.com/screenshots/') || img.dataset.originalSrc;
+    // Ignorujeme GIFy, aby nedošlo k zastavení animace při vykreslení na plátno
+    const srcToCheck = img.dataset.originalSrc || img.src;
+    if (srcToCheck.toLowerCase().endsWith('.gif')) {
+        return;
+    }
+
+    // Změněná podmínka: stačí, když URL obsahuje doménu a někde v sobě slovo "screenshot"
+    const isScreenshot = (img.src.includes('assets.repebble.com') && img.src.includes('screenshot')) || img.dataset.originalSrc;
     const isAlreadyProcessed = img.src.startsWith('data:image/png;base64');
 
     if (isScreenshot && !isAlreadyProcessed) {

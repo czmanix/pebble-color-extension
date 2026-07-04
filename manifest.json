@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Pebble Color Corrector",
+  "version": "1.0",
+  "description": "Korekce barev screenshotů na apps.repebble.com podle reálných podmínek.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "*://apps.repebble.com/*",
+    "*://assets.repebble.com/*" 
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://apps.repebble.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

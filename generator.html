@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Palette generator for the extension</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
+        .container { max-width: 700px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .input-group { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background: #fafafa; }
+        textarea { width: 100%; height: 300px; font-family: monospace; padding: 10px; box-sizing: border-box; margin-top: 10px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #status { font-weight: bold; margin-top: 15px; color: #d9534f; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Code generator for palette conversion</h2>
+    <p>Select the original and your real palette form a photo. Script creates a conversion array for insertion in <code>content.js</code>.</p>
+    
+    <div class="input-group">
+        <label>1. Ideal (clear) palette (like <code>defined.png</code>):</label><br><br>
+        <input type="file" id="idealFile" accept="image/png, image/jpeg">
+    </div>
+
+    <div class="input-group">
+        <label>2. Real palette (from a photo):</label><br><br>
+        <input type="file" id="realFile" accept="image/png, image/jpeg">
+    </div>
+
+    <button onclick="generateCode()">Generate the code</button>
+    
+    <div id="status"></div>
+
+    <textarea id="output" placeholder="Place for the final code" readonly></textarea>
+</div>
+
+<script>
+    function loadFileAsImage(fileInputId) {
+        return new Promise((resolve, reject) => {
+            const fileInput = document.getElementById(fileInputId);
+            if (!fileInput.files || !fileInput.files[0]) {
+                reject("No file selected.");
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject("Error during image load.");
+                img.src = e.target.result;
+            };
+            reader.onerror = () => reject("Error during file load.");
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function generateCode() {
+        const statusDiv = document.getElementById('status');
+        const outputBox = document.getElementById('output');
+        statusDiv.style.color = "#d9534f";
+        statusDiv.innerText = "";
+        outputBox.value = "";
+
+        try {
+            const idealImg = await loadFileAsImage('idealFile');
+            const realImg = await loadFileAsImage('realFile');
+
+            const canvasI = document.createElement('canvas');
+            const canvasR = document.createElement('canvas');
+            canvasI.width = idealImg.width; canvasI.height = idealImg.height;
+            canvasR.width = realImg.width; canvasR.height = realImg.height;
+            
+            const ctxI = canvasI.getContext('2d');
+            const ctxR = canvasR.getContext('2d');
+            ctxI.drawImage(idealImg, 0, 0);
+            ctxR.drawImage(realImg, 0, 0);
+
+            let code = "[\n";
+            
+            for (let y = 0; y < 8; y++) {
+                for (let x = 0; x < 8; x++) {
+                    const pxI = Math.floor((x + 0.5) * (idealImg.width / 8));
+                    const pyI = Math.floor((y + 0.5) * (idealImg.height / 8));
+                    const pxR = Math.floor((x + 0.5) * (realImg.width / 8));
+                    const pyR = Math.floor((y + 0.5) * (realImg.height / 8));
+
+                    const dataI = ctxI.getImageData(pxI, pyI, 1, 1).data;
+                    const dataR = ctxR.getImageData(pxR, pyR, 1, 1).data;
+
+                    code += `    { ideal: [${dataI[0]}, ${dataI[1]}, ${dataI[2]}], real: [${dataR[0]}, ${dataR[1]}, ${dataR[2]}] }`;
+                    
+                    // Přidáme čárku kromě posledního prvku
+                    if (y !== 7 || x !== 7) {
+                        code += ",";
+                    }
+                    code += "\n";
+                }
+            }
+            code += "]";
+            
+            outputBox.value = code;
+            statusDiv.style.color = "#5cb85c";
+            statusDiv.innerText = "Code generated, you can copy it.";
+
+        } catch (error) {
+            statusDiv.innerText = "Error: " + error;
+        }
+    }
+</script>
+
+</body>
+</html>

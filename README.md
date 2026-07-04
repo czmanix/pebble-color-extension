@@ -29,6 +29,8 @@ Since this extension is not published on the Chrome Web Store, you can easily lo
 The extension utilizes a background Service Worker to fetch the screenshot image data, successfully bypassing the strict CORS policies on the Rebble servers. The `content.js` script then draws the image on a hidden HTML `<canvas>`, compares every pixel against a predefined color mapping table (generated from real photos), applies the corresponding real-world color, and replaces the image source directly in the DOM.
 
 ## How It Was Created 
-A simple app for Pebble displays all available colors.  
+I created a simple app for Pebble that displays all available colors.  
 Photos of this app on my Pebble Time 2 were taken by me. Then in Photoshop by sampling average area of a displayed color I've created real world palettes by hand.
 The rest was vibecoded with Gemini.
+
+**Licence:** Do what you want with this, have fun, and please give me a credit :) 
